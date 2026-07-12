@@ -227,12 +227,21 @@ footer small{font-size:.8rem;opacity:.75}
 @media (max-width:820px){
   .svc{grid-template-columns:1fr}
   .facts{grid-template-columns:1fr 1fr}
-  nav{top:auto;bottom:14px}
+  nav{
+    top:auto;bottom:14px;left:16px;right:16px;transform:none;
+    max-width:none;width:auto;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  nav::-webkit-scrollbar{display:none}
   nav .brand-dot{display:none}
+  nav button[data-v]{padding:10px 8px;font-size:.7rem;letter-spacing:.06em;flex:1 1 0;text-align:center}
   section.view{padding:56px 0 120px}
   .days{grid-template-columns:repeat(4,1fr)}
   .glass{padding:26px 20px}
   .btn-ghost{margin:12px 0 0}
+  footer{padding-bottom:75px}
+  .rule-line{font-size:.6rem;letter-spacing:.2em;gap:10px;white-space:nowrap}
+  .rule-line::before,.rule-line::after{width:26px}
 }
 </style>
 </head>
