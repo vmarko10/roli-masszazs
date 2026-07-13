@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roli Masszázs — Online időpontfoglalás | booked4.us</title>
+<style>
+/* Mock booked4.us beágyazott foglalófelület — az éles verzióban ezt a fájlt
+   a booked4.us által hosztolt oldal váltja ki. */
+:root{
+  --b4u:#00A0B0;       /* booked4.us jellegű accent */
+  --b4u-dark:#00808D;
+  --txt:#2B3440;
+  --muted:#6B7684;
+  --line:#E3E8EE;
+  --bg:#F4F6F8;
+  --ok:#2EA76F;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--txt);background:var(--bg);
+  font-size:15px;line-height:1.5;
+}
+.widget{max-width:860px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column}
+header{
+  background:var(--b4u);color:#fff;padding:16px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+header h1{font-size:1.15rem;font-weight:600}
+header small{opacity:.85;font-size:.78rem}
+.inner{padding:22px;flex:1}
+.step{margin-bottom:24px}
+.step-title{
+  display:flex;align-items:center;gap:10px;
+  font-size:.95rem;font-weight:600;margin-bottom:12px;
+}
+.step-title .num{
+  width:24px;height:24px;border-radius:50%;flex:0 0 24px;
+  background:var(--b4u);color:#fff;font-size:.8rem;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+select{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+  font-family:inherit;font-size:.95rem;color:var(--txt);background:#fff;cursor:pointer;
+}
+select:focus,input:focus{outline:2px solid var(--b4u);outline-offset:1px;border-color:var(--b4u)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.day{
+  border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;
+  padding:10px 2px;text-align:center;font-family:inherit;transition:.15s;
+}
+.day small{display:block;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.day b{font-size:1.05rem;font-weight:600}
+.day .mo{font-size:.7rem;color:var(--muted)}
+.day:hover:not(:disabled){border-color:var(--b4u)}
+.day.sel{background:var(--b4u);border-color:var(--b4u)}
+.day.sel small,.day.sel b,.day.sel .mo{color:#fff}
+.day:disabled{opacity:.35;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.slot{
+  border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;
+  padding:10px 0;text-align:center;font-family:inherit;font-size:.92rem;transition:.15s;
+}
+.slot:hover:not(:disabled){border-color:var(--b4u);color:var(--b4u)}
+.slot.sel{background:var(--b4u);border-color:var(--b4u);color:#fff;font-weight:600}
+.slot:disabled{opacity:.35;cursor:not-allowed;text-decoration:line-through}
+.hint{color:var(--muted);font-size:.85rem}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:.8rem;font-weight:600;color:var(--muted)}
+.field input{
+  padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+  font-family:inherit;font-size:.95rem;color:var(--txt);
+}
+.summary{
+  background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px;margin-bottom:16px;font-size:.9rem;color:var(--muted);
+}
+.summary b{color:var(--txt)}
+.submit{
+  width:100%;padding:14px;border:0;border-radius:8px;cursor:pointer;
+  background:var(--b4u);color:#fff;font-family:inherit;font-size:1rem;font-weight:600;
+  transition:.15s;
+}
+.submit:hover:not(:disabled){background:var(--b4u-dark)}
+.submit:disabled{opacity:.45;cursor:not-allowed}
+.confirm{display:none;text-align:center;padding:48px 20px}
+.confirm.on{display:block}
+.confirm .tick{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 16px;
+  background:var(--ok);color:#fff;font-size:1.9rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.confirm h2{font-size:1.3rem;margin-bottom:8px}
+.confirm p{color:var(--muted);max-width:42ch;margin:0 auto}
+.confirm button{
+  margin-top:22px;padding:11px 24px;border:1px solid var(--b4u);border-radius:8px;
+  background:#fff;color:var(--b4u);font-family:inherit;font-size:.92rem;font-weight:600;cursor:pointer;
+}
+.b4u-foot{
+  border-top:1px solid var(--line);padding:12px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:.76rem;color:var(--muted);
+}
+.b4u-foot .logo{font-weight:700;color:var(--b4u);text-decoration:none}
+@media (max-width:560px){
+  .days{grid-template-columns:repeat(4,1fr)}
+  .fields{grid-template-columns:1fr}
+  header{padding:14px 16px}
+  .inner{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="widget">
+  <header>
+    <h1>Roli Masszázs — Online időpontfoglalás</h1>
+    <small>Biztonságos foglalás</small>
+  </header>
+
+  <div class="inner">
+    <div id="booking">
+      <div class="step">
+        <div class="step-title"><span class="num">1</span> Válassz szolgáltatást</div>
+        <select id="service">
+          <optgroup label="Gyógymasszázs">
+            <option value="Gyógymasszázs — 30 perc (4.500 Ft)">Gyógymasszázs — 30 perc · 4.500 Ft</option>
+            <option value="Gyógymasszázs — 60 perc (7.000 Ft)" selected>Gyógymasszázs — 60 perc · 7.000 Ft</option>
+            <option value="Gyógymasszázs — 90 perc (9.000 Ft)">Gyógymasszázs — 90 perc · 9.000 Ft</option>
+          </optgroup>
+          <optgroup label="Relaxáló masszázs">
+            <option value="Relaxáló masszázs — 30 perc (5.500 Ft)">Relaxáló masszázs — 30 perc · 5.500 Ft</option>
+            <option value="Relaxáló masszázs — 60 perc (9.000 Ft)">Relaxáló masszázs — 60 perc · 9.000 Ft</option>
+            <option value="Relaxáló masszázs — 90 perc (12.500 Ft)">Relaxáló masszázs — 90 perc · 12.500 Ft</option>
+          </optgroup>
+          <optgroup label="Aromaterápiás masszázs">
+            <option value="Aromaterápiás masszázs — 60 perc (10.500 Ft)">Aromaterápiás masszázs — 60 perc · 10.500 Ft</option>
+            <option value="Aromaterápiás masszázs — 90 perc (13.500 Ft)">Aromaterápiás masszázs — 90 perc · 13.500 Ft</option>
+          </optgroup>
+          <optgroup label="További kezelések">
+            <option value="Talpmasszázs — 30 perc (5.000 Ft)">Talpmasszázs — 30 perc · 5.000 Ft</option>
+            <option value="Arcmasszázs — 20–30 perc (4.500 Ft)">Arcmasszázs — 20–30 perc · 4.500 Ft</option>
+            <option value="Cellulit masszázs köpölyözéssel (9.000 Ft/alkalom)">Cellulit masszázs köpölyözéssel — 9.000 Ft/alkalom</option>
+            <option value="Köpöly terápia — 1 terület (4.500 Ft)">Köpöly terápia — 1 terület · 4.500 Ft</option>
+            <option value="Köpöly terápia — teljes hát (6.000 Ft)">Köpöly terápia — teljes hát · 6.000 Ft</option>
+            <option value="Kinezológiai tape kezelés — 1 terület (4.000 Ft)">Kinezológiai tape kezelés — 1 terület · 4.000 Ft</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="step">
+        <div class="step-title"><span class="num">2</span> Válassz napot</div>
+        <div class="days" id="days"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-title"><span class="num">3</span> Válassz időpontot</div>
+        <div class="slots" id="slots"><p class="hint">Előbb válassz napot a naptárból.</p></div>
+      </div>
+
+      <div class="step">
+        <div class="step-title"><span class="num">4</span> Add meg az adataid</div>
+        <div class="summary" id="summary">Még nem választottál időpontot.</div>
+        <div class="fields">
+          <div class="field"><label for="name">Név *</label><input id="name" type="text" placeholder="Teljes név" autocomplete="name"></div>
+          <div class="field"><label for="phone">Telefonszám</label><input id="phone" type="tel" placeholder="+36 30 123 4567" autocomplete="tel"></div>
+          <div class="field full"><label for="email">E-mail cím *</label><input id="email" type="email" placeholder="nev@email.hu" autocomplete="email"></div>
+        </div>
+      </div>
+
+      <button class="submit" id="submit" disabled onclick="book()">Foglalás véglegesítése</button>
+    </div>
+
+    <div class="confirm" id="confirm">
+      <div class="tick">✓</div>
+      <h2>Sikeres foglalás!</h2>
+      <p id="confirmText"></p>
+      <button onclick="resetBooking()">Új foglalás</button>
+    </div>
+  </div>
+
+  <div class="b4u-foot">
+    <span>Foglalási rendszer: <a class="logo" href="#" onclick="return false">booked4.us</a></span>
+    <span>Adatkezelés · ÁSZF</span>
+  </div>
+</div>
+
+<script>
+const HU_DAYS=['V','H','K','Sze','Cs','P','Szo'];
+const HU_MONTHS=['jan','febr','márc','ápr','máj','jún','júl','aug','szept','okt','nov','dec'];
+const ALL_SLOTS=['09:00','10:30','12:00','14:00','15:30','17:00','18:30'];
+let selDay=null, selSlot=null;
+const taken={};
+const key=d=>d.toISOString().slice(0,10);
+const fmt=d=>`${d.getFullYear()}. ${HU_MONTHS[d.getMonth()]} ${d.getDate()}. (${['vasárnap','hétfő','kedd','szerda','csütörtök','péntek','szombat'][d.getDay()]})`;
+
+function buildDays(){
+  const wrap=document.getElementById('days');
+  wrap.innerHTML='';
+  const today=new Date();
+  for(let i=1;i<=7;i++){
+    const d=new Date(today); d.setDate(today.getDate()+i);
+    const sunday=d.getDay()===0;
+    const btn=document.createElement('button');
+    btn.className='day'; btn.disabled=sunday;
+    btn.innerHTML=`<small>${HU_DAYS[d.getDay()]}</small><b>${d.getDate()}</b><span class="mo">${HU_MONTHS[d.getMonth()]}</span>`;
+    if(!sunday){
+      // demo: néhány sáv determinisztikusan foglalt
+      if(!taken[key(d)]) taken[key(d)]=ALL_SLOTS.filter((_,ix)=>(d.getDate()+ix)%5===0);
+      btn.onclick=()=>{selDay=d;selSlot=null;
+        wrap.querySelectorAll('.day').forEach(x=>x.classList.remove('sel'));
+        btn.classList.add('sel');buildSlots();update();};
+    }
+    wrap.appendChild(btn);
+  }
+}
+function buildSlots(){
+  const wrap=document.getElementById('slots');
+  wrap.innerHTML='';
+  if(!selDay){wrap.innerHTML='<p class="hint">Előbb válassz napot a naptárból.</p>';return}
+  const busy=taken[key(selDay)]||[];
+  ALL_SLOTS.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='slot';b.textContent=t;b.disabled=busy.includes(t);
+    b.onclick=()=>{selSlot=t;
+      wrap.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');update();};
+    wrap.appendChild(b);
+  });
+}
+function update(){
+  const s=document.getElementById('summary');
+  const svc=document.getElementById('service').value;
+  if(selDay&&selSlot) s.innerHTML=`<b>${svc}</b><br>Időpont: <b>${fmt(selDay)} · ${selSlot}</b>`;
+  else if(selDay) s.innerHTML=`Nap: <b>${fmt(selDay)}</b> — válassz időpontot.`;
+  else s.textContent='Még nem választottál időpontot.';
+  validate();
+}
+function validate(){
+  const n=document.getElementById('name').value.trim();
+  const e=document.getElementById('email').value.trim();
+  const ok=selDay&&selSlot&&n.length>=3&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  document.getElementById('submit').disabled=!ok;
+}
+function book(){
+  const n=document.getElementById('name').value.trim();
+  const svc=document.getElementById('service').value;
+  taken[key(selDay)]=[...(taken[key(selDay)]||[]),selSlot];
+  document.getElementById('booking').style.display='none';
+  document.getElementById('confirm').classList.add('on');
+  document.getElementById('confirmText').textContent=
+    `${n}, a foglalásod rögzítettük: ${svc} — ${fmt(selDay)} ${selSlot}. A visszaigazolást elküldtük e-mailben.`;
+}
+function resetBooking(){
+  selDay=null;selSlot=null;
+  document.getElementById('name').value='';
+  document.getElementById('email').value='';
+  document.getElementById('phone').value='';
+  document.getElementById('confirm').classList.remove('on');
+  document.getElementById('booking').style.display='';
+  buildDays();buildSlots();update();
+}
+document.getElementById('name').addEventListener('input',validate);
+document.getElementById('email').addEventListener('input',validate);
+document.getElementById('service').addEventListener('change',update);
+buildDays();buildSlots();update();
+</script>
+</body>
+</html>
